@@ -27,6 +27,13 @@
 
 <main>
   <section class="input">
+    <h2>전송 서버</h2>
+    <div class="servers">
+      <label data-server="dev">개발서버 주소<input id="urlDev" type="text" inputmode="url" spellcheck="false" autocomplete="off" placeholder="http://aspdev.example.co.kr"></label>
+      <label data-server="prod">운영서버 주소<input id="urlProd" type="text" inputmode="url" spellcheck="false" autocomplete="off" placeholder="https://asp.example.co.kr"></label>
+    </div>
+    <p id="serverHint" class="hint">주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. POS의 TrnServerIP 와 같은 http/https 를 쓰세요. 입력한 주소는 이 브라우저에만 저장됩니다.</p>
+
     <h2>대상 매장</h2>
     <form id="rowForm" class="row-form">
       <label>매장코드<input name="shopCd" required placeholder="DT0741"></label>
@@ -85,6 +92,7 @@ DT0741,20260824,20260824154958</textarea>
   <form method="dialog">
     <h3>운영서버로 전송합니다</h3>
     <p><strong id="prodCount"></strong>개 매장의 마감 정산이 운영 웹서버에 반영됩니다. 반영 후에는 이 화면에서 되돌릴 수 없습니다.</p>
+    <p class="dest">전송 주소 <strong id="prodUrl"></strong></p>
     <label>계속하려면 YES를 입력하세요<input id="prodYes" autocomplete="off"></label>
     <div class="actions">
       <button value="cancel" class="ghost">취소</button>

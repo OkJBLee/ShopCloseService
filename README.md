@@ -52,7 +52,8 @@ npm run dev                        # wrangler, http://localhost:8787
    - Framework Preset: **Other** (vercel.json 이 빌드 없음, 출력 `public` 으로 지정)
 3. Settings > Environment Variables 에 등록 (Production)
    - `ACCESS_TOKEN` (길고 임의의 문자열, 필수)
-   - `TARGET_DEV`, `TARGET_PROD` (끝에 `/` 없이, 운영을 비우면 운영 전송 비활성)
+   - (선택) `ALLOWED_HOSTS`: 화면에서 입력할 수 있는 서버 호스트 목록, 쉼표 구분 (예: `asp.okpos.co.kr,aspdev.okpos.co.kr`)
+   - (선택) `TARGET_DEV`, `TARGET_PROD`: 화면 주소 칸을 비웠을 때 쓸 기본 주소
    - 필요 시 `SEND_CONTENT_TYPE`, `SEND_USER_AGENT`, `SEND_BODY_MODE`, `SEND_FORM_FIELD`, `SEND_TIMEOUT_MS`
      (Vercel 은 `wrangler.toml` 을 읽지 않으므로 기본값과 다르게 쓰려면 여기에 넣어야 함)
 4. 환경변수 변경 후에는 Deployments > Redeploy 해야 반영됨
@@ -69,16 +70,28 @@ npm run dev                        # wrangler, http://localhost:8787
 1. Cloudflare 계정 생성 후 로그인: `npx wrangler login`
 2. 접근 토큰 등록 (길고 임의의 문자열): `npx wrangler secret put ACCESS_TOKEN`
 3. 배포: `npm run deploy` → `https://shop-close-service.<계정>.workers.dev`
-4. 대시보드 Workers > shop-close-service > Settings > Variables 에서 `TARGET_DEV`, `TARGET_PROD` 입력
-   (예: `http://aspdev.example.co.kr`, 끝에 `/` 없이). 서버 주소는 저장소에 넣지 않습니다.
-   `npm run deploy` 는 `--keep-vars` 로 실행되어 대시보드 값을 보존합니다. 운영 값을 비워 두면 운영 전송이 비활성화됩니다.
+4. (선택) 대시보드 Workers > shop-close-service > Settings > Variables 에서 `ALLOWED_HOSTS`, `TARGET_DEV`, `TARGET_PROD` 입력.
+   `npm run deploy` 는 `--keep-vars` 로 실행되어 대시보드 값을 보존합니다.
 5. 권장: Zero Trust > Access > Applications 에서 이 workers.dev 주소에 본인 이메일만 허용 (무료, 이메일 OTP)
 
 GitHub 연동 배포를 원하면 대시보드 Workers > Create > Import a repository 에서 이 저장소를 연결하면 됩니다.
 
+## 전송 서버 주소
+
+화면 상단 "전송 서버"에 개발서버·운영서버 주소를 입력합니다 (예: `http://aspdev.example.co.kr`).
+
+- 경로·쿼리는 무시하고 `scheme://host[:port]` 만 사용하며, 뒤에 `/SvrApp/PS000.java` 를 붙여 전송합니다.
+- POS 의 `TrnServerIP` 와 같은 http/https 를 써야 합니다. 서버가 리다이렉트(3xx)하면 따라가지 않고 실패로 표시합니다.
+- 입력한 주소는 그 브라우저의 localStorage 에만 저장되며 서버에는 남지 않습니다.
+- 주소 칸을 비우면 환경변수 `TARGET_DEV` / `TARGET_PROD` 를 사용합니다. 둘 다 없으면 전송 버튼이 비활성화됩니다.
+- localhost·사설 IP 는 차단됩니다 (로컬 테스트 시에만 `.dev.vars` 에 `ALLOW_PRIVATE_HOSTS=1`).
+- `ALLOWED_HOSTS` 를 설정하면 목록에 있는 호스트로만 전송할 수 있습니다. 토큰이 유출되더라도
+  임의 서버로 요청을 보내는 데 악용되지 않도록 설정을 권장합니다.
+- 같은 매장이라도 주소를 바꾸면 다시 전송할 수 있습니다.
+
 ## 사용 순서
 
-1. 접근 토큰 입력 → 연결
+1. 접근 토큰 입력 → 연결, 전송 서버 주소 입력
 2. 매장 추가 (단건 또는 CSV: `shopCd,saleDate,openDt[,posNo,empNo,closeDt]`)
 3. 오른쪽 정산 전문 확인, 경고(개점일 ≠ 영업일 등) 확인
 4. "매출 0 확인" 체크 → **개발서버로 먼저 전송** → ASP 개발서버 화면 확인

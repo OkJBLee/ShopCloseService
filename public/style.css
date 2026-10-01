@@ -55,6 +55,15 @@ h2:first-child { margin-top: 0; }
 
 .input { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 20px 22px; }
 
+.servers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+.servers input { font-family: var(--mono); color: var(--ink); }
+.servers label[data-active="true"] { color: var(--accent); font-weight: 600; }
+.servers label[data-active="true"] input { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+@media (max-width: 600px) { .servers { grid-template-columns: 1fr; } }
+.dest { font-size: 14px; word-break: break-all; }
+.dest strong { font-family: var(--mono); font-weight: 700; }
+
 .row-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 12px; align-items: end; }
 .row-form details { grid-column: 1 / -1; }
 .row-form details[open] { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px 12px; }
@@ -64,7 +73,7 @@ h2:first-child { margin-top: 0; }
   .row-form, .row-form details[open] { grid-template-columns: 1fr; }
 }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--ink-soft); }
-input:not([type]), input[type="password"], textarea {
+input:not([type]), input[type="password"], input[type="text"], textarea {
   padding: 7px 9px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-size: 15px;
 }
 .row-form input, .csv textarea { font-family: var(--mono); color: var(--ink); }

@@ -24,7 +24,51 @@ async function api(path, body) {
   return { status: res.status, data: data || {} };
 }
 
-let availableTargets = { dev: false, prod: false };
+// ---------- 전송 서버 주소 (브라우저에만 저장) ----------
+let envTargets = { dev: false, prod: false };
+const urlInput = (t) => (t === 'prod' ? $('#urlProd') : $('#urlDev'));
+function loadUrls() {
+  try {
+    $('#urlDev').value = localStorage.getItem('sc-url-dev') || '';
+    $('#urlProd').value = localStorage.getItem('sc-url-prod') || '';
+  } catch { /* 저장소 사용 불가 */ }
+}
+function saveUrls() {
+  try {
+    localStorage.setItem('sc-url-dev', $('#urlDev').value.trim());
+    localStorage.setItem('sc-url-prod', $('#urlProd').value.trim());
+  } catch { /* 저장소 사용 불가 */ }
+}
+/** 입력값을 origin 으로 정리. 비었으면 '', 형식 오류면 null */
+function cleanUrl(v) {
+  const raw = String(v || '').trim();
+  if (!raw) return '';
+  try {
+    const u = new URL(/^[a-z]+:\/\//i.test(raw) ? raw : `http://${raw}`);
+    return /^https?:$/.test(u.protocol) ? u.origin : null;
+  } catch { return null; }
+}
+function targetUrl(t = target()) { return cleanUrl(urlInput(t).value); }
+function targetReady(t = target()) {
+  const u = targetUrl(t);
+  return u === null ? false : (u !== '' || envTargets[t]);
+}
+function targetLabel(t = target()) {
+  const u = targetUrl(t);
+  return u || (envTargets[t] ? '환경변수에 설정된 기본 주소' : '');
+}
+function refreshServers() {
+  document.querySelectorAll('.servers label').forEach((l) => { l.dataset.active = String(l.dataset.server === target()); });
+  for (const t of ['dev', 'prod']) {
+    urlInput(t).placeholder = envTargets[t] ? '비우면 환경변수 기본 주소 사용'
+      : (t === 'prod' ? 'https://asp.example.co.kr' : 'http://aspdev.example.co.kr');
+  }
+  const u = targetUrl();
+  $('#serverHint').textContent = u === null
+    ? '주소 형식이 올바르지 않습니다. http:// 또는 https:// 로 시작하는 서버 주소를 입력하세요.'
+    : '주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. POS의 TrnServerIP 와 같은 http/https 를 쓰세요. 입력한 주소는 이 브라우저에만 저장됩니다.';
+  $('#serverHint').classList.toggle('st-fail', u === null);
+}
 function setConnected(ok, text) {
   state.connected = ok;
   $('#conn').textContent = text;
@@ -36,9 +80,9 @@ async function connect() {
   try {
     const { status, data } = await api('/api/config');
     if (status !== 200) return setConnected(false, data.error || `연결 실패 (HTTP ${status})`);
-    availableTargets = data.targets;
-    const names = [availableTargets.dev && '개발', availableTargets.prod && '운영'].filter(Boolean);
-    setConnected(true, names.length ? `연결됨 · 사용 가능: ${names.join(', ')}` : '연결됨 · 설정된 서버 없음');
+    envTargets = data.envTargets || { dev: false, prod: false };
+    refreshServers();
+    setConnected(true, '연결됨');
   } catch (e) {
     setConnected(false, '연결 실패');
   }
@@ -138,6 +182,7 @@ function renderSlip() {
     </dl>
     <hr><p class="zero">매출·결제·시재 111개 항목 모두 0</p><hr>
     ${last ? `<dl><dt>전송</dt><dd>${last.target === 'prod' ? '운영서버' : '개발서버'}</dd>
+      ${last.targetUrl ? `<dt>주소</dt><dd>${esc(last.targetUrl)}</dd>` : ''}
       <dt>결과</dt><dd class="${last.result?.ok ? 'st-ok' : 'st-fail'}">${esc(last.result?.message)}</dd>
       <dt>응답</dt><dd>${esc(last.result?.srid ?? '-')} / ${esc(last.result?.retcd ?? '-')}</dd></dl>` : ''}
     ${msgs ? `<ul class="msgs">${msgs}</ul>` : ''}
@@ -147,14 +192,15 @@ function renderSlip() {
 }
 
 // 현재 대상 서버로 아직 성공하지 않은 행 (개발 성공 후 운영 전송 가능)
-const sentOkTo = (r, tgt) => r.log.some((l) => l.target === tgt && l.result?.ok);
+// 같은 구분(dev/prod)이라도 주소를 바꾸면 다시 보낼 수 있다
+const sentOkTo = (r, tgt) => r.log.some((l) => l.target === tgt && l.requestedUrl === (targetUrl(tgt) || '') && l.result?.ok);
 const isSendable = (r) => ['ready', 'warn', 'fail', 'ok'].includes(r.status) && r.preview?.ok !== false && !sentOkTo(r, target());
 
 function refreshButtons() {
   const sendable = state.rows.filter(isSendable);
   $('#previewAll').disabled = state.busy || !state.connected || !state.rows.length;
   $('#sendAll').disabled = state.busy || !state.connected || !sendable.length
-    || !$('#salesChecked').checked || !availableTargets[target()];
+    || !$('#salesChecked').checked || !targetReady();
   $('#sendAll').textContent = state.busy ? '전송 중…'
     : `PS010 전송${sendable.length ? ` (${sendable.length}건)` : ''} · ${target() === 'prod' ? '운영' : '개발'}`;
 }
@@ -164,21 +210,24 @@ async function sendAll() {
   const tgt = target();
   const list = state.rows.filter(isSendable);
   if (!list.length) return;
+  const url = targetUrl(tgt);
+  if (url === null) { alert('서버 주소 형식이 올바르지 않습니다.'); return; }
   if (tgt === 'prod') {
-    const ok = await confirmProd(list.length);
+    const ok = await confirmProd(list.length, targetLabel(tgt));
     if (!ok) return;
   }
+  saveUrls();
   state.busy = true; render();
   for (const r of list) {
     r.status = 'sending'; render();
     try {
-      const { data } = await api('/api/send', { target: tgt, row: r.input, confirm: tgt === 'prod' ? 'YES' : undefined });
-      const entry = { at: new Date().toISOString(), target: tgt, ...data, result: data.result || { ok: false, message: data.error || (data.errors || []).join(' ') } };
+      const { data } = await api('/api/send', { target: tgt, targetUrl: url || undefined, row: r.input, confirm: tgt === 'prod' ? 'YES' : undefined });
+      const entry = { at: new Date().toISOString(), target: tgt, requestedUrl: url || '', ...data, result: data.result || { ok: false, message: data.error || (data.errors || []).join(' ') } };
       r.log.push(entry);
       if (data.requestXml) r.preview = { ...(r.preview || {}), xml: data.requestXml, values: data.values || r.preview?.values };
       r.status = entry.result.ok ? 'ok' : 'fail';
     } catch (e) {
-      r.log.push({ at: new Date().toISOString(), target: tgt, result: { ok: false, message: '네트워크 오류' } });
+      r.log.push({ at: new Date().toISOString(), target: tgt, requestedUrl: url || '', targetUrl: url, result: { ok: false, message: '네트워크 오류' } });
       r.status = 'fail';
     }
     render();
@@ -187,9 +236,10 @@ async function sendAll() {
   state.busy = false; render();
 }
 
-function confirmProd(n) {
+function confirmProd(n, dest) {
   const dlg = $('#confirmProd');
   $('#prodCount').textContent = n;
+  $('#prodUrl').textContent = dest;
   $('#prodYes').value = '';
   $('#prodOk').disabled = true;
   dlg.showModal();
@@ -208,12 +258,12 @@ function download(name, text, type) {
 const stamp = () => new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '');
 
 function downloadCsv() {
-  const head = 'shopCd,saleDate,posNo,openDt,closeDt,target,result,srid,retcd,message,sentAt';
+  const head = 'shopCd,saleDate,posNo,openDt,closeDt,target,targetUrl,result,srid,retcd,message,sentAt';
   const lines = state.rows.map((r) => {
     const l = r.log[r.log.length - 1] || {};
     const v = l.values || r.preview?.values || {};
     return [r.input.shopCd?.toUpperCase(), r.input.saleDate, v.POS_NO || r.input.posNo || '01', r.input.openDt, v.CLOSE_DT || '',
-      l.target || '', l.result ? (l.result.ok ? 'OK' : 'FAIL') : '', l.result?.srid || '', l.result?.retcd || '',
+      l.target || '', l.targetUrl || '', l.result ? (l.result.ok ? 'OK' : 'FAIL') : '', l.result?.srid || '', l.result?.retcd || '',
       `"${String(l.result?.message || STATUS[r.status][0]).replace(/"/g, '""')}"`, l.at || ''].join(',');
   });
   download(`force-close-result-${stamp()}.csv`, '\uFEFF' + [head, ...lines].join('\r\n'), 'text/csv;charset=utf-8');
@@ -233,8 +283,13 @@ $('#tokenForm').addEventListener('submit', (e) => {
 
 document.querySelectorAll('input[name="target"]').forEach((el) => el.addEventListener('change', () => {
   document.body.dataset.target = target();
+  refreshServers();
   refreshButtons();
 }));
+['#urlDev', '#urlProd'].forEach((id) => {
+  $(id).addEventListener('input', () => { refreshServers(); refreshButtons(); });
+  $(id).addEventListener('change', saveUrls);
+});
 
 $('#rowForm').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -290,5 +345,7 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // 시작
+loadUrls();
+refreshServers();
 if (getToken()) { $('#token').value = getToken(); connect(); }
 render();
