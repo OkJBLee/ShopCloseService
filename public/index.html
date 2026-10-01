@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>미사용 매장 강제 마감</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-target="dev">
+<header class="bar">
+  <h1>미사용 매장 강제 마감</h1>
+  <div class="target" role="radiogroup" aria-label="전송 대상 서버">
+    <label><input type="radio" name="target" value="dev" checked> 개발서버</label>
+    <label><input type="radio" name="target" value="prod"> 운영서버</label>
+  </div>
+  <form id="tokenForm" class="token">
+    <label for="token">접근 토큰</label>
+    <input id="token" type="password" autocomplete="off">
+    <button type="submit">연결</button>
+    <span id="conn" class="conn" aria-live="polite">미연결</span>
+  </form>
+</header>
+
+<main>
+  <section class="input">
+    <h2>대상 매장</h2>
+    <form id="rowForm" class="row-form">
+      <label>매장코드<input name="shopCd" required placeholder="DT0741"></label>
+      <label>영업일자<input name="saleDate" required inputmode="numeric" placeholder="20260824"></label>
+      <label>개점시각<input name="openDt" required inputmode="numeric" placeholder="20260824154958"></label>
+      <details>
+        <summary>기본값 변경</summary>
+        <label>포스번호<input name="posNo" inputmode="numeric" placeholder="01"></label>
+        <label>사원번호<input name="empNo" inputmode="numeric" placeholder="0000"></label>
+        <label>마감시각<input name="closeDt" inputmode="numeric" placeholder="비우면 전송 시각"></label>
+      </details>
+      <button type="submit">목록에 추가</button>
+    </form>
+
+    <details class="csv">
+      <summary>CSV로 여러 매장 추가</summary>
+      <p class="hint">첫 줄은 열 이름입니다. 필수 열은 shopCd, saleDate, openDt이고 posNo, empNo, closeDt는 선택입니다.</p>
+      <textarea id="csv" rows="6" spellcheck="false">shopCd,saleDate,openDt
+DT0741,20260824,20260824154958</textarea>
+      <button type="button" id="csvAdd">CSV 추가</button>
+    </details>
+
+    <h2>전송 목록 <span id="count" class="count"></span></h2>
+    <div class="table-wrap">
+      <table id="rows">
+        <thead><tr><th>매장</th><th>영업일자</th><th>개점시각</th><th>포스</th><th>상태</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p id="empty" class="empty">매장을 추가하면 여기에 쌓입니다. 행을 누르면 오른쪽에 전문이 표시됩니다.</p>
+
+    <div class="send">
+      <label class="check"><input type="checkbox" id="salesChecked"> 모든 대상 일자의 매출이 0인 것을 ASP에서 확인했습니다</label>
+      <div class="actions">
+        <button type="button" id="previewAll">전체 검증</button>
+        <button type="button" id="sendAll" class="primary">PS010 전송</button>
+      </div>
+      <p class="hint">PS010 00차수만 전송합니다. /REGI, PD050, OKDC, 다붓, I/F, 미전송 매출(SL010)은 처리되지 않습니다.</p>
+    </div>
+
+    <div class="downloads">
+      <button type="button" id="dlCsv">결과 CSV</button>
+      <button type="button" id="dlJson">전문 기록 JSON</button>
+      <button type="button" id="clearAll" class="ghost">목록 비우기</button>
+    </div>
+  </section>
+
+  <aside class="slip-wrap" aria-label="전문 미리보기">
+    <div id="slip" class="slip">
+      <p class="slip-empty">목록에서 매장을 고르면 정산 전문이 표시됩니다.</p>
+    </div>
+  </aside>
+</main>
+
+<dialog id="confirmProd">
+  <form method="dialog">
+    <h3>운영서버로 전송합니다</h3>
+    <p><strong id="prodCount"></strong>개 매장의 마감 정산이 운영 웹서버에 반영됩니다. 반영 후에는 이 화면에서 되돌릴 수 없습니다.</p>
+    <label>계속하려면 YES를 입력하세요<input id="prodYes" autocomplete="off"></label>
+    <div class="actions">
+      <button value="cancel" class="ghost">취소</button>
+      <button value="ok" id="prodOk" class="danger" disabled>운영서버로 전송</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

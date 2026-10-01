@@ -1,0 +1,21 @@
+name = "shop-close-service"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# TARGET_DEV / TARGET_PROD (대상 서버 기본 URL, 끝에 / 없이)는 저장소에 남기지 않는다.
+#   배포: Cloudflare 대시보드 Settings > Variables 에 입력 (npm run deploy 는 --keep-vars 로 보존)
+#   로컬: .dev.vars
+[vars]
+SEND_PATH = "/SvrApp/PS000.java"
+# 아래 두 값은 OKPOS LibXml_SendRecvData / Send-PS010Close.ps1 과 반드시 동일하게 맞출 것
+SEND_CONTENT_TYPE = "text/xml; charset=UTF-8"
+SEND_USER_AGENT = "OKPOS"
+SEND_BODY_MODE = "raw"
+SEND_FORM_FIELD = "xml"
+SEND_TIMEOUT_MS = "15000"
+
+# ACCESS_TOKEN 은 secret 으로 등록: npx wrangler secret put ACCESS_TOKEN

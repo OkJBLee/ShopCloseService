@@ -1,0 +1,4 @@
+# 로컬 개발용 (wrangler dev). 복사해서 .dev.vars 로 사용. .dev.vars 는 커밋되지 않는다.
+ACCESS_TOKEN=change-me-to-a-long-random-string
+TARGET_DEV=http://aspdev.example.co.kr
+TARGET_PROD=

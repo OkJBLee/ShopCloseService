@@ -1,0 +1,15 @@
+{
+  "name": "shop-close-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "OKPOS 미사용 매장 PS010 강제 마감정산 웹 툴 (Cloudflare Workers)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --keep-vars",
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+.wrangler/
+.dev.vars
+*.log
+force-close-*.csv
+force-close-*.json
+.vercel/
+*.zip
