@@ -5,3 +5,5 @@ node_modules/
 force-close-*.csv
 force-close-*.json
 .vercel/
+Documents/*.*
+*.zip
