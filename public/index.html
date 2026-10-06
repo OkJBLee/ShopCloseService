@@ -29,12 +29,12 @@
   <section class="input">
     <h2>전송 서버</h2>
     <div class="servers">
-      <div class="server" data-server="dev">
+      <div class="server" data-server="dev" data-active="true">
         <label for="selDev">개발서버</label>
         <select id="selDev"></select>
         <input id="urlDev" type="text" inputmode="url" spellcheck="false" autocomplete="off" aria-label="개발서버 주소 직접 입력" placeholder="IP 또는 주소 (예: 211.43.10.5)">
       </div>
-      <div class="server" data-server="prod">
+      <div class="server" data-server="prod" data-active="false">
         <label for="selProd">운영서버</label>
         <select id="selProd"></select>
         <input id="urlProd" type="text" inputmode="url" spellcheck="false" autocomplete="off" aria-label="운영서버 주소 직접 입력" placeholder="IP 또는 주소 (예: 211.43.10.5)">
