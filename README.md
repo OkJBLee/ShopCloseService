@@ -5,7 +5,8 @@ OKPOS 미사용 매장의 영업마감을 웹에서 처리하는 개인용 점�
 Vercel(Hobby) 또는 Cloudflare Workers 무료 플랜에서 동작합니다. 두 호스팅이 같은 코드(`src/api.js`)를 사용합니다.
 
 > 전문 형식은 매출이 없는 매장의 실제 정상 마감 전문(`test/fixtures/ps010_close_sample.xml`)과
-> 바이트 단위로 동일합니다(`npm test` 로 검증).
+> 바이트 단위로 동일합니다(`npm test` 로 검증). 전송 시에는 데몬(`LibXml_SendRecvData`)과 같이
+> 선언부를 `<?xml version="1.0" encoding="UTF-8"?>` 로 바꿔 보냅니다.
 
 ## 처리 범위
 
@@ -78,12 +79,20 @@ GitHub 연동 배포를 원하면 대시보드 Workers > Create > Import a repos
 
 ## 전송 서버 주소
 
-화면 상단 "전송 서버"에 개발서버·운영서버 주소를 입력합니다 (예: `http://aspdev.example.co.kr`).
+화면 상단 "전송 서버"의 콤보박스에서 개발서버·운영서버를 고릅니다. 목록은 `public/servers.js` 에 있습니다.
 
-- 경로·쿼리는 무시하고 `scheme://host[:port]` 만 사용하며, 뒤에 `/SvrApp/PS000.java` 를 붙여 전송합니다.
-- POS 의 `TrnServerIP` 와 같은 http/https 를 써야 합니다. 서버가 리다이렉트(3xx)하면 따라가지 않고 실패로 표시합니다.
-- 입력한 주소는 그 브라우저의 localStorage 에만 저장되며 서버에는 남지 않습니다.
-- 주소 칸을 비우면 환경변수 `TARGET_DEV` / `TARGET_PROD` 를 사용합니다. 둘 다 없으면 전송 버튼이 비활성화됩니다.
+| 구분 | 목록 |
+|---|---|
+| 개발 | ASP `aspdev.okpos.co.kr`, NICE `nicedev.okpos.co.kr`, KIS `kisdev.okpos.co.kr` |
+| 운영 | ASP `asp.okpos.co.kr`, NICE `nice.okpos.co.kr`, NICE(구) `www.niceokpos.co.kr`, KIS `kis.okpos.co.kr`, KIS(구) `www.kisokpos.co.kr`, NICEPAY `www.nicepayokpos.co.kr` |
+
+목록에 없는 서버(IP 등)는 "직접 입력"을 고르고 주소를 입력합니다 (예: `211.43.10.5:8080`).
+
+- 경로·쿼리는 무시하고 `host[:port]` 만 사용하며, 뒤에 `/SvrApp/PS000.java` 를 붙여 전송합니다.
+- http/https 는 ServerSocket `LibXml_SendRecvData` 와 같이 호스트로 정해집니다. 위 목록 도메인은 https, 그 외(IP 포함)는 http 이며, 입력한 스킴은 무시합니다.
+- 서버가 리다이렉트(3xx)하면 따라가지 않고 실패로 표시합니다.
+- 선택·입력한 주소는 그 브라우저의 localStorage 에만 저장되며 서버에는 남지 않습니다.
+- "직접 입력"에서 주소 칸을 비우면 환경변수 `TARGET_DEV` / `TARGET_PROD` 를 사용합니다. 둘 다 없으면 전송 버튼이 비활성화됩니다.
 - localhost·사설 IP 는 차단됩니다 (로컬 테스트 시에만 `.dev.vars` 에 `ALLOW_PRIVATE_HOSTS=1`).
 - `ALLOWED_HOSTS` 를 설정하면 목록에 있는 호스트로만 전송할 수 있습니다. 토큰이 유출되더라도
   임의 서버로 요청을 보내는 데 악용되지 않도록 설정을 권장합니다.
@@ -102,8 +111,8 @@ GitHub 연동 배포를 원하면 대시보드 Workers > Create > Import a repos
 
 ## 운영 전 확인 필요
 
-- **전송 헤더/본문 형식**: `SEND_CONTENT_TYPE`, `SEND_USER_AGENT`, `SEND_BODY_MODE` 는 임시값입니다.
-  `LibXml_SendRecvData` 또는 `Send-PS010Close.ps1` 과 동일하게 맞춰야 합니다.
+- **전송 헤더/본문 형식**: `SEND_USER_AGENT`, `SEND_BODY_MODE`(raw) 는 ServerSocket `LibXml_SendRecvData` 와 맞췄습니다.
+  `SEND_CONTENT_TYPE` 은 데몬이 직접 지정하지 않아(MSXML 기본값) 임시값입니다. 실제 요청을 캡처해 확인하세요.
   (본문을 폼 파라미터로 보내는 방식이면 `SEND_BODY_MODE=form`, `SEND_FORM_FIELD=<파라미터명>`)
 - **IP 제한**: 웹서버가 접속 IP를 제한하면 Cloudflare 에서의 요청이 차단됩니다.
 - **응답 판정**: `TXJM-FD SRID="PS011"` 이고 `RETCD` 가 0(0, 0000 …)이면 성공으로 봅니다.

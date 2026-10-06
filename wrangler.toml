@@ -13,7 +13,7 @@ binding = "ASSETS"
 SEND_PATH = "/SvrApp/PS000.java"
 # 아래 두 값은 OKPOS LibXml_SendRecvData / Send-PS010Close.ps1 과 반드시 동일하게 맞출 것
 SEND_CONTENT_TYPE = "text/xml; charset=UTF-8"
-SEND_USER_AGENT = "OKPOS"
+SEND_USER_AGENT = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; ORCA-1, 0, 0, 1)"
 SEND_BODY_MODE = "raw"
 SEND_FORM_FIELD = "xml"
 SEND_TIMEOUT_MS = "15000"

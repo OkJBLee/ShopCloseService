@@ -1,4 +1,5 @@
 // 미사용 매장 강제 마감 — 화면 로직
+import { PRESETS, schemeFor } from './servers.js';
 const $ = (s) => document.querySelector(s);
 const state = { rows: [], selected: null, connected: false, busy: false, seq: 0 };
 
@@ -27,11 +28,24 @@ async function api(path, body) {
 // ---------- 전송 서버 주소 (브라우저에만 저장) ----------
 let envTargets = { dev: false, prod: false };
 const urlInput = (t) => (t === 'prod' ? $('#urlProd') : $('#urlDev'));
+const urlSelect = (t) => (t === 'prod' ? $('#selProd') : $('#selDev'));
+/** 콤보에서 서버를 고르면 주소 칸을 그 호스트로 채우고 숨긴다. '직접 입력'이면 주소 칸을 보인다. */
+function applySelect(t) {
+  const host = urlSelect(t).value;
+  urlInput(t).hidden = !!host;
+  if (host) urlInput(t).value = host;
+}
 function loadUrls() {
-  try {
-    $('#urlDev').value = localStorage.getItem('sc-url-dev') || '';
-    $('#urlProd').value = localStorage.getItem('sc-url-prod') || '';
-  } catch { /* 저장소 사용 불가 */ }
+  for (const t of ['dev', 'prod']) {
+    urlSelect(t).innerHTML = PRESETS[t].map((p) => `<option value="${esc(p.host)}">${esc(p.label)} · ${esc(p.host)}</option>`).join('')
+      + '<option value="">직접 입력 (IP 등)</option>';
+    let saved = '';
+    try { saved = localStorage.getItem(`sc-url-${t}`) || ''; } catch { /* 저장소 사용 불가 */ }
+    const preset = PRESETS[t].find((p) => p.host === saved);
+    urlSelect(t).value = preset ? preset.host : '';
+    urlInput(t).value = saved;
+    applySelect(t);
+  }
 }
 function saveUrls() {
   try {
@@ -45,7 +59,7 @@ function cleanUrl(v) {
   if (!raw) return '';
   try {
     const u = new URL(/^[a-z]+:\/\//i.test(raw) ? raw : `http://${raw}`);
-    return /^https?:$/.test(u.protocol) ? u.origin : null;
+    return /^https?:$/.test(u.protocol) ? `${schemeFor(u.hostname)}://${u.host}` : null;
   } catch { return null; }
 }
 function targetUrl(t = target()) { return cleanUrl(urlInput(t).value); }
@@ -58,15 +72,15 @@ function targetLabel(t = target()) {
   return u || (envTargets[t] ? '환경변수에 설정된 기본 주소' : '');
 }
 function refreshServers() {
-  document.querySelectorAll('.servers label').forEach((l) => { l.dataset.active = String(l.dataset.server === target()); });
+  document.querySelectorAll('.servers .server').forEach((l) => { l.dataset.active = String(l.dataset.server === target()); });
   for (const t of ['dev', 'prod']) {
-    urlInput(t).placeholder = envTargets[t] ? '비우면 환경변수 기본 주소 사용'
-      : (t === 'prod' ? 'https://asp.example.co.kr' : 'http://aspdev.example.co.kr');
+    urlInput(t).placeholder = envTargets[t] ? '비우면 환경변수 기본 주소 사용' : 'IP 또는 주소 (예: 211.43.10.5)';
   }
   const u = targetUrl();
   $('#serverHint').textContent = u === null
-    ? '주소 형식이 올바르지 않습니다. http:// 또는 https:// 로 시작하는 서버 주소를 입력하세요.'
-    : '주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. POS의 TrnServerIP 와 같은 http/https 를 쓰세요. 입력한 주소는 이 브라우저에만 저장됩니다.';
+    ? '주소 형식이 올바르지 않습니다. IP 또는 서버 주소를 입력하세요.'
+    : `${u ? `전송 주소: ${u}/SvrApp/PS000.java · ` : '주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. '}`
+      + 'http/https 는 데몬과 같은 규칙으로 자동 결정됩니다. 선택한 주소는 이 브라우저에만 저장됩니다.';
   $('#serverHint').classList.toggle('st-fail', u === null);
 }
 function setConnected(ok, text) {
@@ -290,6 +304,16 @@ document.querySelectorAll('input[name="target"]').forEach((el) => el.addEventLis
   $(id).addEventListener('input', () => { refreshServers(); refreshButtons(); });
   $(id).addEventListener('change', saveUrls);
 });
+for (const t of ['dev', 'prod']) {
+  urlSelect(t).addEventListener('change', () => {
+    if (!urlSelect(t).value) urlInput(t).value = '';
+    applySelect(t);
+    saveUrls();
+    refreshServers();
+    refreshButtons();
+    if (!urlSelect(t).value) urlInput(t).focus();
+  });
+}
 
 $('#rowForm').addEventListener('submit', (e) => {
   e.preventDefault();

@@ -9,12 +9,15 @@
 //   ALLOW_PRIVATE_HOSTS (선택) 1 이면 localhost/사설 IP 허용 (로컬 테스트 전용)
 //   SEND_PATH          기본 /SvrApp/PS000.java
 //   SEND_CONTENT_TYPE  기본 text/xml; charset=UTF-8   ← LibXml_SendRecvData 와 동일하게 맞출 것
-//   SEND_USER_AGENT    기본 OKPOS                     ← LibXml_SendRecvData 와 동일하게 맞출 것
+//   SEND_USER_AGENT    기본 LibXml_SendRecvData 의 Win7 값 (Mozilla/5.0 … ORCA-1, 0, 0, 1)
 //   SEND_BODY_MODE     raw(기본) | form
 //   SEND_FORM_FIELD    form 모드일 때 XML 을 담을 파라미터명
 //   SEND_TIMEOUT_MS    기본 15000
 
-import { normalize, buildXml, parseResponse } from './ps010.js';
+import { normalize, buildXml, toWireXml, parseResponse } from './ps010.js';
+import { schemeFor } from '../public/servers.js';
+
+const DEFAULT_USER_AGENT = 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; ORCA-1, 0, 0, 1)';
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -42,6 +45,7 @@ const PRIVATE_HOST = /^(localhost|0\.0\.0\.0|127\.|10\.|192\.168\.|169\.254\.|17
 
 /**
  * 화면에서 입력한 서버 주소 검증. 경로·쿼리는 버리고 origin(scheme://host[:port])만 사용한다.
+ * 스킴은 입력과 무관하게 데몬 규칙(schemeFor)으로 정한다.
  * @returns {{ok:true, base:string} | {ok:false, error:string}}
  */
 export function validateBaseUrl(input, env = {}, { skipAllowlist = false } = {}) {
@@ -61,7 +65,7 @@ export function validateBaseUrl(input, env = {}, { skipAllowlist = false } = {})
     const allow = String(env.ALLOWED_HOSTS || '').split(',').map((h) => h.trim().toLowerCase()).filter(Boolean);
     if (allow.length && !allow.includes(host)) return { ok: false, error: `허용되지 않은 서버입니다 (${host}).` };
   }
-  return { ok: true, base: u.origin };
+  return { ok: true, base: `${schemeFor(host)}://${u.host}` };
 }
 
 async function readJson(request) {
@@ -81,7 +85,7 @@ async function sendPs010(env, baseUrl, xml) {
     method: 'POST',
     headers: {
       'content-type': mode === 'form' ? 'application/x-www-form-urlencoded; charset=UTF-8' : contentType,
-      'user-agent': env.SEND_USER_AGENT || 'OKPOS',
+      'user-agent': env.SEND_USER_AGENT || DEFAULT_USER_AGENT,
     },
     body,
     redirect: 'manual',
@@ -110,7 +114,7 @@ export async function handleApi(request, env, path) {
   // 미리보기: 검증 + XML 생성 (전송 없음)
   if (path === '/api/preview') {
     const n = normalize(body.row);
-    return json({ ...n, xml: n.ok ? buildXml(n.values) : null });
+    return json({ ...n, xml: n.ok ? toWireXml(buildXml(n.values)) : null });
   }
 
   // 전송
@@ -132,7 +136,7 @@ export async function handleApi(request, env, path) {
 
     const n = normalize(body.row);
     if (!n.ok) return json({ ...n, sent: false }, 422);
-    const xml = buildXml(n.values);
+    const xml = toWireXml(buildXml(n.values));
 
     try {
       const r = await sendPs010(env, base, xml);

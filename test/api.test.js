@@ -3,8 +3,15 @@ import assert from 'node:assert/strict';
 import { validateBaseUrl } from '../src/api.js';
 
 test('서버 주소: origin 만 사용', () => {
-  assert.deepEqual(validateBaseUrl('https://asp.example.co.kr/SvrApp/PS000.java?x=1'), { ok: true, base: 'https://asp.example.co.kr' });
+  assert.deepEqual(validateBaseUrl('http://asp.example.co.kr/SvrApp/PS000.java?x=1'), { ok: true, base: 'http://asp.example.co.kr' });
   assert.deepEqual(validateBaseUrl(' asp.example.co.kr:8080/ '), { ok: true, base: 'http://asp.example.co.kr:8080' });
+});
+
+test('서버 주소: 스킴은 데몬 규칙으로 강제 (목록 도메인 https, 그 외 http)', () => {
+  assert.deepEqual(validateBaseUrl('asp.okpos.co.kr'), { ok: true, base: 'https://asp.okpos.co.kr' });
+  assert.deepEqual(validateBaseUrl('http://ASPDEV.okpos.co.kr/x'), { ok: true, base: 'https://aspdev.okpos.co.kr' });
+  assert.deepEqual(validateBaseUrl('https://211.43.10.5:8080'), { ok: true, base: 'http://211.43.10.5:8080' });
+  assert.deepEqual(validateBaseUrl('https://asp.example.co.kr'), { ok: true, base: 'http://asp.example.co.kr' });
 });
 
 test('서버 주소: 잘못된 형식·스킴·계정 거부', () => {

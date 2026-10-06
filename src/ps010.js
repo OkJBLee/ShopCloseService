@@ -90,6 +90,9 @@ export function buildXml(v) {
          `<DATA-HD ${hd}><DATA-DT ${dt}/></DATA-HD></TSP-NVP>\r\n`;
 }
 
+/** 실제 전송 본문: 데몬(LibXml_SendRecvData)과 같이 선언부에 encoding="UTF-8" 을 넣는다 */
+export const toWireXml = (xml) => xml.replace('?>', ' encoding="UTF-8"?>');
+
 /** 응답 판정: TXJM-FD 의 SRID=PS011 이고 RETCD 가 0(0, 0000 …)이면 성공 */
 export function parseResponse(text) {
   const tag = /<TXJM-FD\b([^>]*?)\/?>/i.exec(text || '');

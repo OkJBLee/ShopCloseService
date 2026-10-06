@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { normalize, buildXml, parseResponse, DT_COLUMNS, nowKst } from '../src/ps010.js';
+import { normalize, buildXml, toWireXml, parseResponse, DT_COLUMNS, nowKst } from '../src/ps010.js';
 
 const sample = readFileSync(new URL('./fixtures/ps010_close_sample.xml', import.meta.url), 'utf8');
 
@@ -9,6 +9,11 @@ test('실제 정상 마감 전문과 바이트 단위로 동일', () => {
   const n = normalize({ shopCd: 'DT0741', saleDate: '20260824', openDt: '20260824154958', closeDt: '20261001011625' });
   assert.equal(n.ok, true);
   assert.equal(buildXml(n.values), sample);
+});
+
+test('전송 본문: 선언부에만 encoding="UTF-8" 추가 (LibXml_SendRecvData 와 동일)', () => {
+  assert.equal(toWireXml(sample), sample.replace('<?xml version="1.0"?>', '<?xml version="1.0" encoding="UTF-8"?>'));
+  assert.ok(toWireXml(sample).startsWith('<?xml version="1.0" encoding="UTF-8"?>\r\n<TSP-NVP>'));
 });
 
 test('DATA-DT 컬럼 120개, 중복 없음', () => {

@@ -29,10 +29,18 @@
   <section class="input">
     <h2>전송 서버</h2>
     <div class="servers">
-      <label data-server="dev">개발서버 주소<input id="urlDev" type="text" inputmode="url" spellcheck="false" autocomplete="off" placeholder="http://aspdev.example.co.kr"></label>
-      <label data-server="prod">운영서버 주소<input id="urlProd" type="text" inputmode="url" spellcheck="false" autocomplete="off" placeholder="https://asp.example.co.kr"></label>
+      <div class="server" data-server="dev">
+        <label for="selDev">개발서버</label>
+        <select id="selDev"></select>
+        <input id="urlDev" type="text" inputmode="url" spellcheck="false" autocomplete="off" aria-label="개발서버 주소 직접 입력" placeholder="IP 또는 주소 (예: 211.43.10.5)">
+      </div>
+      <div class="server" data-server="prod">
+        <label for="selProd">운영서버</label>
+        <select id="selProd"></select>
+        <input id="urlProd" type="text" inputmode="url" spellcheck="false" autocomplete="off" aria-label="운영서버 주소 직접 입력" placeholder="IP 또는 주소 (예: 211.43.10.5)">
+      </div>
     </div>
-    <p id="serverHint" class="hint">주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. POS의 TrnServerIP 와 같은 http/https 를 쓰세요. 입력한 주소는 이 브라우저에만 저장됩니다.</p>
+    <p id="serverHint" class="hint">주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. http/https 는 데몬과 같은 규칙으로 자동 결정됩니다. 선택한 주소는 이 브라우저에만 저장됩니다.</p>
 
     <h2>대상 매장</h2>
     <form id="rowForm" class="row-form">
