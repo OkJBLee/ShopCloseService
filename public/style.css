@@ -43,7 +43,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
 /* 연결됨: 토큰 칸 대신 녹색 배지 + 로그아웃 (바 색은 개발/운영 구분용으로 유지) */
 .token[data-connected="true"] label, .token[data-connected="true"] input { display: none; }
 .token[data-connected="true"] .conn {
-  order: -1; padding: 4px 12px; border: 1px solid #fff; border-radius: 999px;
+  padding: 4px 12px; border: 1px solid #fff; border-radius: 999px;
   background: var(--ok); color: #fff; font-weight: 700; opacity: 1;
 }
 .token[data-connected="true"] .conn::before { content: "● "; }
