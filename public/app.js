@@ -108,6 +108,8 @@ function refreshServers() {
 function setConnected(ok, text) {
   state.connected = ok;
   $('#conn').textContent = text;
+  $('#tokenForm').dataset.connected = String(ok);
+  $('#tokenBtn').textContent = ok ? '로그아웃' : '연결';
   refreshButtons();
 }
 
@@ -313,6 +315,13 @@ function downloadJson() {
 // ---------- 이벤트 ----------
 $('#tokenForm').addEventListener('submit', (e) => {
   e.preventDefault();
+  if (state.connected) {
+    if (state.busy) return;
+    setToken('');
+    $('#token').value = '';
+    setConnected(false, '미연결');
+    return;
+  }
   setToken($('#token').value.trim());
   connect().then(() => state.rows.filter((r) => r.status === 'new').forEach(validate));
 });

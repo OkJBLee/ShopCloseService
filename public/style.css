@@ -40,6 +40,13 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .token input { width: 160px; max-width: 45vw; padding: 5px 8px; border: 0; border-radius: 4px; color: var(--ink); }
 .token button { padding: 5px 12px; border: 1px solid #fff; border-radius: 4px; background: transparent; color: #fff; cursor: pointer; }
 .conn { font-size: 13px; opacity: .9; }
+/* 연결됨: 토큰 칸 대신 녹색 배지 + 로그아웃 (바 색은 개발/운영 구분용으로 유지) */
+.token[data-connected="true"] label, .token[data-connected="true"] input { display: none; }
+.token[data-connected="true"] .conn {
+  order: -1; padding: 4px 12px; border: 1px solid #fff; border-radius: 999px;
+  background: var(--ok); color: #fff; font-weight: 700; opacity: 1;
+}
+.token[data-connected="true"] .conn::before { content: "● "; }
 
 main {
   display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px;

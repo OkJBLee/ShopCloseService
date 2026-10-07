@@ -17,10 +17,10 @@
     <label><input type="radio" name="target" value="dev"> 개발서버</label>
     <label><input type="radio" name="target" value="prod" checked> 운영서버</label>
   </div>
-  <form id="tokenForm" class="token">
+  <form id="tokenForm" class="token" data-connected="false">
     <label for="token">접근 토큰</label>
     <input id="token" type="password" autocomplete="off">
-    <button type="submit">연결</button>
+    <button type="submit" id="tokenBtn">연결</button>
     <span id="conn" class="conn" aria-live="polite">미연결</span>
   </form>
 </header>
