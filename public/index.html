@@ -76,7 +76,6 @@ DT0741,20260824,20260824154958</textarea>
     <p id="empty" class="empty">매장을 추가하면 여기에 쌓입니다. 행을 누르면 오른쪽에 전문이 표시됩니다.</p>
 
     <div class="send">
-      <label class="check"><input type="checkbox" id="salesChecked"> 모든 대상 일자의 매출이 0인 것을 ASP에서 확인했습니다</label>
       <div class="actions">
         <button type="button" id="previewAll">전체 검증</button>
         <button type="button" id="sendAll" class="primary">PS010 전송</button>
@@ -102,6 +101,7 @@ DT0741,20260824,20260824154958</textarea>
   <form method="dialog">
     <h3>운영서버로 전송합니다</h3>
     <p><strong id="prodCount"></strong>개 매장의 마감 정산이 운영 웹서버에 반영됩니다. 반영 후에는 이 화면에서 되돌릴 수 없습니다.</p>
+    <p class="caution">⚠ 대상 매장은 매출이 없는 미사용 매장이어야 합니다. 매출이 있는 일자는 정산 금액이 0으로 기록됩니다.</p>
     <p class="dest">전송 주소 <strong id="prodUrl"></strong></p>
     <label>계속하려면 YES를 입력하세요<input id="prodYes" autocomplete="off"></label>
     <div class="actions">

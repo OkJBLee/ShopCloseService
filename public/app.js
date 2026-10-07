@@ -238,7 +238,7 @@ function refreshButtons() {
   const sendable = state.rows.filter(isSendable);
   $('#previewAll').disabled = state.busy || !state.connected || !state.rows.length;
   $('#sendAll').disabled = state.busy || !state.connected || !sendable.length
-    || !$('#salesChecked').checked || !targetReady();
+    || !targetReady();
   $('#sendAll').textContent = state.busy ? '전송 중…'
     : `PS010 전송${sendable.length ? ` (${sendable.length}건)` : ''} · ${target() === 'prod' ? '운영' : '개발'}`;
 }
@@ -389,7 +389,6 @@ $('#slip').addEventListener('click', (e) => {
 
 $('#previewAll').addEventListener('click', () => state.rows.filter((r) => r.status !== 'ok').forEach(validate));
 $('#sendAll').addEventListener('click', sendAll);
-$('#salesChecked').addEventListener('change', refreshButtons);
 $('#prodYes').addEventListener('input', (e) => { $('#prodOk').disabled = e.target.value.trim() !== 'YES'; });
 $('#dlCsv').addEventListener('click', downloadCsv);
 $('#dlJson').addEventListener('click', downloadJson);
