@@ -236,7 +236,6 @@ const isSendable = (r) => ['ready', 'warn', 'fail', 'ok'].includes(r.status) && 
 
 function refreshButtons() {
   const sendable = state.rows.filter(isSendable);
-  $('#previewAll').disabled = state.busy || !state.connected || !state.rows.length;
   $('#sendAll').disabled = state.busy || !state.connected || !sendable.length
     || !targetReady();
   $('#sendAll').textContent = state.busy ? '전송 중…'
@@ -387,7 +386,6 @@ $('#slip').addEventListener('click', (e) => {
   if (r?.preview?.xml) navigator.clipboard.writeText(r.preview.xml).then(() => { e.target.textContent = '복사됨'; });
 });
 
-$('#previewAll').addEventListener('click', () => state.rows.filter((r) => r.status !== 'ok').forEach(validate));
 $('#sendAll').addEventListener('click', sendAll);
 $('#prodYes').addEventListener('input', (e) => { $('#prodOk').disabled = e.target.value.trim() !== 'YES'; });
 $('#dlCsv').addEventListener('click', downloadCsv);
