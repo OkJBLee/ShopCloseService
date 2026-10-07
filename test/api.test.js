@@ -7,11 +7,12 @@ test('서버 주소: origin 만 사용', () => {
   assert.deepEqual(validateBaseUrl(' asp.example.co.kr:8080/ '), { ok: true, base: 'http://asp.example.co.kr:8080' });
 });
 
-test('서버 주소: 스킴은 데몬 규칙으로 강제 (목록 도메인 https, 그 외 http)', () => {
+test('서버 주소: 스킴 생략 시 데몬 규칙 (목록 도메인 https, 그 외 http), 지정 시 그대로', () => {
   assert.deepEqual(validateBaseUrl('asp.okpos.co.kr'), { ok: true, base: 'https://asp.okpos.co.kr' });
-  assert.deepEqual(validateBaseUrl('http://ASPDEV.okpos.co.kr/x'), { ok: true, base: 'https://aspdev.okpos.co.kr' });
-  assert.deepEqual(validateBaseUrl('https://211.43.10.5:8080'), { ok: true, base: 'http://211.43.10.5:8080' });
-  assert.deepEqual(validateBaseUrl('https://asp.example.co.kr'), { ok: true, base: 'http://asp.example.co.kr' });
+  assert.deepEqual(validateBaseUrl('ASPDEV.okpos.co.kr/x'), { ok: true, base: 'https://aspdev.okpos.co.kr' });
+  assert.deepEqual(validateBaseUrl('211.43.10.5:8080'), { ok: true, base: 'http://211.43.10.5:8080' });
+  assert.deepEqual(validateBaseUrl('http://asp.okpos.co.kr'), { ok: true, base: 'http://asp.okpos.co.kr' });
+  assert.deepEqual(validateBaseUrl('https://211.43.10.5:8080'), { ok: true, base: 'https://211.43.10.5:8080' });
 });
 
 test('서버 주소: 잘못된 형식·스킴·계정 거부', () => {

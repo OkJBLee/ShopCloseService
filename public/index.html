@@ -10,12 +10,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
-<body data-target="dev">
+<body data-target="prod">
 <header class="bar">
   <h1>미사용 매장 강제 마감</h1>
   <div class="target" role="radiogroup" aria-label="전송 대상 서버">
-    <label><input type="radio" name="target" value="dev" checked> 개발서버</label>
-    <label><input type="radio" name="target" value="prod"> 운영서버</label>
+    <label><input type="radio" name="target" value="dev"> 개발서버</label>
+    <label><input type="radio" name="target" value="prod" checked> 운영서버</label>
   </div>
   <form id="tokenForm" class="token">
     <label for="token">접근 토큰</label>
@@ -29,18 +29,20 @@
   <section class="input">
     <h2>전송 서버</h2>
     <div class="servers">
-      <div class="server" data-server="dev" data-active="true">
+      <div class="server" data-server="dev" data-active="false">
         <label for="selDev">개발서버</label>
         <select id="selDev"></select>
         <input id="urlDev" type="text" inputmode="url" spellcheck="false" autocomplete="off" aria-label="개발서버 주소 직접 입력" placeholder="IP 또는 주소 (예: 211.43.10.5)">
+        <label class="check"><input type="checkbox" id="httpsDev"> https 사용</label>
       </div>
-      <div class="server" data-server="prod" data-active="false">
+      <div class="server" data-server="prod" data-active="true">
         <label for="selProd">운영서버</label>
         <select id="selProd"></select>
         <input id="urlProd" type="text" inputmode="url" spellcheck="false" autocomplete="off" aria-label="운영서버 주소 직접 입력" placeholder="IP 또는 주소 (예: 211.43.10.5)">
+        <label class="check"><input type="checkbox" id="httpsProd"> https 사용</label>
       </div>
     </div>
-    <p id="serverHint" class="hint">주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. http/https 는 데몬과 같은 규칙으로 자동 결정됩니다. 선택한 주소는 이 브라우저에만 저장됩니다.</p>
+    <p id="serverHint" class="hint">주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. http/https 는 "https 사용" 체크로 정합니다. 선택한 주소는 이 브라우저에만 저장됩니다.</p>
 
     <h2>대상 매장</h2>
     <form id="rowForm" class="row-form">

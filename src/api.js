@@ -45,14 +45,15 @@ const PRIVATE_HOST = /^(localhost|0\.0\.0\.0|127\.|10\.|192\.168\.|169\.254\.|17
 
 /**
  * 화면에서 입력한 서버 주소 검증. 경로·쿼리는 버리고 origin(scheme://host[:port])만 사용한다.
- * 스킴은 입력과 무관하게 데몬 규칙(schemeFor)으로 정한다.
+ * 스킴을 쓰면 그대로 사용하고, 생략하면 데몬 규칙(schemeFor)으로 정한다.
  * @returns {{ok:true, base:string} | {ok:false, error:string}}
  */
 export function validateBaseUrl(input, env = {}, { skipAllowlist = false } = {}) {
   const raw = String(input ?? '').trim();
   if (!raw) return { ok: false, error: '서버 주소가 비어 있습니다.' };
+  const hasScheme = /^[a-z]+:\/\//i.test(raw);
   let u;
-  try { u = new URL(/^[a-z]+:\/\//i.test(raw) ? raw : `http://${raw}`); } catch {
+  try { u = new URL(hasScheme ? raw : `http://${raw}`); } catch {
     return { ok: false, error: '서버 주소 형식이 올바르지 않습니다.' };
   }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') return { ok: false, error: 'http 또는 https 주소만 사용할 수 있습니다.' };
@@ -65,7 +66,7 @@ export function validateBaseUrl(input, env = {}, { skipAllowlist = false } = {})
     const allow = String(env.ALLOWED_HOSTS || '').split(',').map((h) => h.trim().toLowerCase()).filter(Boolean);
     if (allow.length && !allow.includes(host)) return { ok: false, error: `허용되지 않은 서버입니다 (${host}).` };
   }
-  return { ok: true, base: `${schemeFor(host)}://${u.host}` };
+  return { ok: true, base: hasScheme ? u.origin : `${schemeFor(host)}://${u.host}` };
 }
 
 async function readJson(request) {

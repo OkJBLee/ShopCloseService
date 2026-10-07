@@ -29,11 +29,23 @@ async function api(path, body) {
 let envTargets = { dev: false, prod: false };
 const urlInput = (t) => (t === 'prod' ? $('#urlProd') : $('#urlDev'));
 const urlSelect = (t) => (t === 'prod' ? $('#selProd') : $('#selDev'));
+const httpsBox = (t) => (t === 'prod' ? $('#httpsProd') : $('#httpsDev'));
 /** 콤보에서 서버를 고르면 주소 칸을 그 호스트로 채우고 숨긴다. '직접 입력'이면 주소 칸을 보인다. */
 function applySelect(t) {
   const host = urlSelect(t).value;
   urlInput(t).hidden = !!host;
   if (host) urlInput(t).value = host;
+}
+/** 주소에서 호스트만 추출. 비었거나 형식 오류면 '' */
+function hostOf(v) {
+  const raw = String(v || '').trim();
+  try { return raw ? new URL(/^[a-z]+:\/\//i.test(raw) ? raw : `http://${raw}`).hostname : ''; } catch { return ''; }
+}
+/** https 체크 기본값: 주소에 스킴을 썼으면 그 스킴, 아니면 데몬 규칙(목록 도메인 https, 그 외 http) */
+function autoHttps(t) {
+  const raw = urlInput(t).value.trim();
+  const m = /^(https?):\/\//i.exec(raw);
+  httpsBox(t).checked = m ? m[1].toLowerCase() === 'https' : schemeFor(hostOf(raw)) === 'https';
 }
 function loadUrls() {
   for (const t of ['dev', 'prod']) {
@@ -45,24 +57,30 @@ function loadUrls() {
     urlSelect(t).value = preset ? preset.host : '';
     urlInput(t).value = saved;
     applySelect(t);
+    let https = null;
+    try { https = localStorage.getItem(`sc-https-${t}`); } catch { /* 저장소 사용 불가 */ }
+    if (https === null) autoHttps(t); else httpsBox(t).checked = https === '1';
   }
 }
 function saveUrls() {
   try {
     localStorage.setItem('sc-url-dev', $('#urlDev').value.trim());
     localStorage.setItem('sc-url-prod', $('#urlProd').value.trim());
+    localStorage.setItem('sc-https-dev', $('#httpsDev').checked ? '1' : '0');
+    localStorage.setItem('sc-https-prod', $('#httpsProd').checked ? '1' : '0');
   } catch { /* 저장소 사용 불가 */ }
 }
-/** 입력값을 origin 으로 정리. 비었으면 '', 형식 오류면 null */
-function cleanUrl(v) {
+/** 입력값을 scheme://host[:port] 로 정리. 스킴은 https 체크로 정한다. 비었으면 '', 형식 오류면 null */
+function cleanUrl(v, https) {
   const raw = String(v || '').trim();
   if (!raw) return '';
   try {
     const u = new URL(/^[a-z]+:\/\//i.test(raw) ? raw : `http://${raw}`);
-    return /^https?:$/.test(u.protocol) ? `${schemeFor(u.hostname)}://${u.host}` : null;
+    if (!/^https?:$/.test(u.protocol)) return null;
+    return `${https ? 'https' : 'http'}://${new URL(`${https ? 'https' : 'http'}://${u.host}`).host}`;
   } catch { return null; }
 }
-function targetUrl(t = target()) { return cleanUrl(urlInput(t).value); }
+function targetUrl(t = target()) { return cleanUrl(urlInput(t).value, httpsBox(t).checked); }
 function targetReady(t = target()) {
   const u = targetUrl(t);
   return u === null ? false : (u !== '' || envTargets[t]);
@@ -77,11 +95,15 @@ function refreshServers() {
     urlInput(t).placeholder = envTargets[t] ? '비우면 환경변수 기본 주소 사용' : 'IP 또는 주소 (예: 211.43.10.5)';
   }
   const u = targetUrl();
+  const differs = u && httpsBox(target()).checked !== (schemeFor(hostOf(u)) === 'https');
   $('#serverHint').textContent = u === null
     ? '주소 형식이 올바르지 않습니다. IP 또는 서버 주소를 입력하세요.'
     : `${u ? `전송 주소: ${u}/SvrApp/PS000.java · ` : '주소 뒤에 /SvrApp/PS000.java 가 붙어 전송됩니다. '}`
-      + 'http/https 는 데몬과 같은 규칙으로 자동 결정됩니다. 선택한 주소는 이 브라우저에만 저장됩니다.';
+      + (differs ? '데몬 규칙(목록 도메인 https, 그 외 http)과 다른 스킴입니다. '
+        : 'http/https 는 "https 사용" 체크로 정합니다 (기본값은 데몬 규칙). ')
+      + '선택한 주소는 이 브라우저에만 저장됩니다.';
   $('#serverHint').classList.toggle('st-fail', u === null);
+  $('#serverHint').classList.toggle('st-warn', !!differs);
 }
 function setConnected(ok, text) {
   state.connected = ok;
@@ -305,9 +327,12 @@ document.querySelectorAll('input[name="target"]').forEach((el) => el.addEventLis
   $(id).addEventListener('change', saveUrls);
 });
 for (const t of ['dev', 'prod']) {
+  urlInput(t).addEventListener('input', () => { autoHttps(t); refreshServers(); refreshButtons(); });
+  httpsBox(t).addEventListener('change', () => { saveUrls(); refreshServers(); refreshButtons(); });
   urlSelect(t).addEventListener('change', () => {
     if (!urlSelect(t).value) urlInput(t).value = '';
     applySelect(t);
+    autoHttps(t);
     saveUrls();
     refreshServers();
     refreshButtons();

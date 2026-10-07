@@ -89,7 +89,7 @@ GitHub 연동 배포를 원하면 대시보드 Workers > Create > Import a repos
 목록에 없는 서버(IP 등)는 "직접 입력"을 고르고 주소를 입력합니다 (예: `211.43.10.5:8080`).
 
 - 경로·쿼리는 무시하고 `host[:port]` 만 사용하며, 뒤에 `/SvrApp/PS000.java` 를 붙여 전송합니다.
-- http/https 는 ServerSocket `LibXml_SendRecvData` 와 같이 호스트로 정해집니다. 위 목록 도메인은 https, 그 외(IP 포함)는 http 이며, 입력한 스킴은 무시합니다.
+- http/https 는 서버 칸 아래 "https 사용" 체크로 정합니다. 서버를 고르거나 주소를 입력하면 ServerSocket `LibXml_SendRecvData` 규칙(위 목록 도메인 https, 그 외·IP http)으로 자동 체크되고, 직접 바꿀 수 있습니다. 규칙과 다르면 안내 문구가 경고색으로 바뀝니다.
 - 서버가 리다이렉트(3xx)하면 따라가지 않고 실패로 표시합니다.
 - 선택·입력한 주소는 그 브라우저의 localStorage 에만 저장되며 서버에는 남지 않습니다.
 - "직접 입력"에서 주소 칸을 비우면 환경변수 `TARGET_DEV` / `TARGET_PROD` 를 사용합니다. 둘 다 없으면 전송 버튼이 비활성화됩니다.
