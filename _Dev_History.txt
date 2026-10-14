@@ -115,7 +115,7 @@
 - 테스트 추가 (test/api.test.js), README·사용법 문서 갱신
 - 9차 업로드 커밋 정보 기록
 
-[11차 업로드]
+[11차 업로드 - 전송 서버 목록 변경 및 전송 헤더 수정] f50bfad
 - 서버팀 확인 결과로 전송 서버 목록 변경 (public/servers.js)
   . 개발: ASP dev.netusys.com, NK개발(로컬 실행 전용) 192.168.50.234
   . 운영: ASP asp.netusys.com, KIS(구) www.kisokpos.co.kr, NICE(구) www.niceokpos.co.kr, NICEPAY www.nicepayokpos.co.kr
@@ -129,9 +129,18 @@
 - README 갱신
 - 10차 업로드 커밋 정보 기록
 
+[12차 업로드]
+- 사내 PC 로컬 실행 추가 (NK개발 등 사설 IP 서버 전송용)
+  . local-server.js: Node.js 만으로 실행 (npm install 불필요), 화면·전문·헤더는 Vercel 과 동일(src/api.js)
+  . 로컬실행.bat 더블클릭 → http://127.0.0.1:8788 자동 열림, 접근 토큰 자동 생성·입력
+  . 이 PC 에서만 접속 가능(127.0.0.1), 사설 IP 전송 허용은 로컬 실행에서만
+  . npm run local 스크립트 추가
+- README 갱신
+- 11차 업로드 커밋 정보 기록
+
 -------------------------------------------------------------------------------
 [미확인 / 후속]
-- Method: POST 로 전송 실패 시 GET(본문 포함) 전환 검토. fetch 불가로 Node http 직접 전송 필요, wrangler 로컬 실행 미지원
+- Method: POST 로 전송 실패 시 GET(본문 포함) 전환 검토. fetch 불가로 Node http 직접 전송 필요 (local-server.js 는 Node 라 가능)
 - PS011 실제 응답 원문, 서버 반영 방식(덮어쓰기 여부), 재전송 시 동작
 - Vercel 실제 배포 후 개발/운영 서버 전송 검증
 - 웹서버의 접속 IP 제한 여부

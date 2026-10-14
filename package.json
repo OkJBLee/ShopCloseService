@@ -6,6 +6,7 @@
   "description": "OKPOS 미사용 매장 PS010 강제 마감정산 웹 툴 (Cloudflare Workers)",
   "scripts": {
     "dev": "wrangler dev",
+    "local": "node local-server.js",
     "deploy": "wrangler deploy --keep-vars",
     "test": "node --test test/*.test.js"
   },

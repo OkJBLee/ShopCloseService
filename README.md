@@ -27,6 +27,7 @@ src/
   api.js           /api/config, /api/preview, /api/send 공통 처리 (프록시)
   worker.js        Cloudflare Workers 진입점
   ps010.js         입력 검증, XML 생성, 응답 판정
+local-server.js    사내 PC 로컬 실행용 서버 (Node.js 만 필요), 로컬실행.bat 으로 실행
 vercel.json        Vercel 설정 (정적 디렉터리 public, 서울 리전 icn1)
 test/
   ps010.test.js    실전문 일치 등 단위 테스트
@@ -45,6 +46,19 @@ copy .dev.vars.example .dev.vars   # ACCESS_TOKEN, TARGET_DEV 입력
 npm run dev                        # wrangler, http://localhost:8787
 # Vercel 방식으로 확인하려면: npx vercel dev  (Vercel 로그인 필요, 환경변수는 .env.local)
 ```
+
+## 사내 PC 로컬 실행 (NK개발 등 사설 IP 서버)
+
+Vercel 은 회사 밖에 있어 `192.168.x.x` 같은 사내 서버로 보낼 수 없습니다. 이때는 사내 PC 에서 직접 띄웁니다.
+
+1. Node.js 설치 (https://nodejs.org, `npm install` 은 필요 없음)
+2. `로컬실행.bat` 더블클릭 (또는 `npm run local`)
+3. 브라우저가 `http://127.0.0.1:8788` 로 열리고 자동으로 연결됨 → 개발서버 > NK개발 선택 → 전송
+4. 끝나면 실행 창을 닫음
+
+- 화면·전문·헤더는 Vercel 과 같습니다 (같은 `src/api.js` 사용). 사설 IP 전송은 로컬 실행에서만 허용됩니다.
+- 이 PC 에서만 접속할 수 있고(127.0.0.1), 접근 토큰은 실행할 때마다 새로 만들어 자동 입력합니다.
+- 포트를 바꾸려면 환경변수 `PORT` 를 지정합니다.
 
 ## 배포 A — Vercel (GitHub 연동)
 
@@ -83,7 +97,7 @@ GitHub 연동 배포를 원하면 대시보드 Workers > Create > Import a repos
 
 | 구분 | 목록 |
 |---|---|
-| 개발 | ASP `dev.netusys.com`, NK개발 `192.168.50.234` (사설 IP: 사내망 로컬 실행 + `ALLOW_PRIVATE_HOSTS=1` 에서만 전송 가능) |
+| 개발 | ASP `dev.netusys.com`, NK개발 `192.168.50.234` (사설 IP: `로컬실행.bat` 로컬 실행에서만 전송 가능) |
 | 운영 | ASP `asp.netusys.com`, KIS(구) `www.kisokpos.co.kr`, NICE(구) `www.niceokpos.co.kr`, NICEPAY `www.nicepayokpos.co.kr` |
 
 목록에 없는 서버(IP 등)는 "직접 입력"을 고르고 주소를 입력합니다 (예: `211.43.10.5:8080`).
