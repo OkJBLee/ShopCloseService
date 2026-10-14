@@ -8,7 +8,7 @@
 //                      (예: asp.okpos.co.kr,aspdev.okpos.co.kr). 비우면 공인 호스트 전체 허용
 //   ALLOW_PRIVATE_HOSTS (선택) 1 이면 localhost/사설 IP 허용 (로컬 테스트 전용)
 //   SEND_PATH          기본 /SvrApp/PS000.java
-//   SEND_CONTENT_TYPE  기본 text/xml; charset=UTF-8   ← LibXml_SendRecvData 와 동일하게 맞출 것
+//   SEND_CONTENT_TYPE  기본 application/xml (서버팀 Postman 요청과 동일)
 //   SEND_USER_AGENT    기본 LibXml_SendRecvData 의 Win7 값 (Mozilla/5.0 … ORCA-1, 0, 0, 1)
 //   SEND_BODY_MODE     raw(기본) | form
 //   SEND_FORM_FIELD    form 모드일 때 XML 을 담을 파라미터명
@@ -76,14 +76,19 @@ async function readJson(request) {
 /** 웹서버로 보낼 요청(URL·헤더·본문). 전송과 기록에 같은 값을 쓴다. */
 function buildRequest(env, baseUrl, xml) {
   const url = baseUrl + (env.SEND_PATH || '/SvrApp/PS000.java');
-  const contentType = env.SEND_CONTENT_TYPE || 'text/xml; charset=UTF-8';
+  const contentType = env.SEND_CONTENT_TYPE || 'application/xml';
   const mode = (env.SEND_BODY_MODE || 'raw').toLowerCase();
   const body = mode === 'form'
     ? new URLSearchParams({ [env.SEND_FORM_FIELD || 'xml']: xml }).toString()
     : xml;
+  // Accept·Accept-Language·Cache-Control·Accept-Encoding 은 LibXml_SendRecvData 와 동일
   const headers = {
     'content-type': mode === 'form' ? 'application/x-www-form-urlencoded; charset=UTF-8' : contentType,
     'user-agent': env.SEND_USER_AGENT || DEFAULT_USER_AGENT,
+    accept: '*/*',
+    'accept-language': 'ko',
+    'cache-control': 'no-cache',
+    'accept-encoding': 'gzip, deflate',
   };
   return { method: 'POST', url, headers, body };
 }

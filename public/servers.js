@@ -9,16 +9,13 @@ export const HTTPS_HOSTS = [
 
 export const PRESETS = {
   dev: [
-    { label: 'ASP', host: 'aspdev.okpos.co.kr' },
-    { label: 'NICE', host: 'nicedev.okpos.co.kr' },
-    { label: 'KIS', host: 'kisdev.okpos.co.kr' },
+    { label: 'ASP', host: 'dev.netusys.com' },
+    { label: 'NK개발(로컬 실행 전용)', host: '192.168.50.234' },
   ],
   prod: [
-    { label: 'ASP', host: 'asp.okpos.co.kr' },
-    { label: 'NICE', host: 'nice.okpos.co.kr' },
-    { label: 'NICE(구)', host: 'www.niceokpos.co.kr' },
-    { label: 'KIS', host: 'kis.okpos.co.kr' },
+    { label: 'ASP', host: 'asp.netusys.com' },
     { label: 'KIS(구)', host: 'www.kisokpos.co.kr' },
+    { label: 'NICE(구)', host: 'www.niceokpos.co.kr' },
     { label: 'NICEPAY', host: 'www.nicepayokpos.co.kr' },
   ],
 };

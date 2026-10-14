@@ -107,7 +107,7 @@
 - 입력값 검증 정상. aspdev(61.82.71.180) 80/443 포트 연결 안 됨 (사내 PC 에서도 동일, 운영 asp 는 정상)
 - 접속 IP 제한 추정, 서버팀 확인 필요
 
-[10차 업로드]
+[10차 업로드 - 전송 실패 로그 기록/다운로드] 970eccc
 - 웹서버로 실제 보낸 요청(URL·헤더·본문·전송 시각)을 결과에 기록 (src/api.js)
   . 성공·실패 모두 기록, 전문 기록 JSON 의 request 항목
   . 연결 실패 시 원인 코드 표시 (예: 전송 실패: fetch failed (ETIMEDOUT))
@@ -115,9 +115,23 @@
 - 테스트 추가 (test/api.test.js), README·사용법 문서 갱신
 - 9차 업로드 커밋 정보 기록
 
+[11차 업로드]
+- 서버팀 확인 결과로 전송 서버 목록 변경 (public/servers.js)
+  . 개발: ASP dev.netusys.com, NK개발(로컬 실행 전용) 192.168.50.234
+  . 운영: ASP asp.netusys.com, KIS(구) www.kisokpos.co.kr, NICE(구) www.niceokpos.co.kr, NICEPAY www.nicepayokpos.co.kr
+  . 삭제: aspdev/nicedev/kisdev/asp/nice/kis .okpos.co.kr
+  . netusys·NK개발은 데몬 https 목록에 없어 http 로 자동 선택 (dev.netusys.com 은 https 미응답 확인)
+  . NK개발(사설 IP)은 Vercel 에서 차단됨, 사내망 로컬 실행 + ALLOW_PRIVATE_HOSTS=1 에서만 전송 가능
+- 전송 헤더 변경 (src/api.js, wrangler.toml)
+  . Content-Type: application/xml (서버팀 Postman 요청과 동일, 기존 text/xml; charset=UTF-8)
+  . Accept */*, Accept-Language ko, Cache-Control no-cache, Accept-Encoding gzip, deflate 추가 (LibXml_SendRecvData 와 동일)
+  . Method 는 POST 유지 (서버팀 확인: PS000.java POST 수신 가능, 데몬도 POST)
+- README 갱신
+- 10차 업로드 커밋 정보 기록
+
 -------------------------------------------------------------------------------
 [미확인 / 후속]
-- Content-Type: 데몬이 직접 지정하지 않음(MSXML 기본값). 실제 POS 요청 캡처로 확인 필요
+- Method: POST 로 전송 실패 시 GET(본문 포함) 전환 검토. fetch 불가로 Node http 직접 전송 필요, wrangler 로컬 실행 미지원
 - PS011 실제 응답 원문, 서버 반영 방식(덮어쓰기 여부), 재전송 시 동작
 - Vercel 실제 배포 후 개발/운영 서버 전송 검증
 - 웹서버의 접속 IP 제한 여부

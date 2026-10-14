@@ -53,7 +53,7 @@ npm run dev                        # wrangler, http://localhost:8787
    - Framework Preset: **Other** (vercel.json 이 빌드 없음, 출력 `public` 으로 지정)
 3. Settings > Environment Variables 에 등록 (Production)
    - `ACCESS_TOKEN` (길고 임의의 문자열, 필수)
-   - (선택) `ALLOWED_HOSTS`: 화면에서 입력할 수 있는 서버 호스트 목록, 쉼표 구분 (예: `asp.okpos.co.kr,aspdev.okpos.co.kr`)
+   - (선택) `ALLOWED_HOSTS`: 화면에서 입력할 수 있는 서버 호스트 목록, 쉼표 구분 (예: `asp.netusys.com,dev.netusys.com`)
    - (선택) `TARGET_DEV`, `TARGET_PROD`: 화면 주소 칸을 비웠을 때 쓸 기본 주소
    - 필요 시 `SEND_CONTENT_TYPE`, `SEND_USER_AGENT`, `SEND_BODY_MODE`, `SEND_FORM_FIELD`, `SEND_TIMEOUT_MS`
      (Vercel 은 `wrangler.toml` 을 읽지 않으므로 기본값과 다르게 쓰려면 여기에 넣어야 함)
@@ -83,13 +83,13 @@ GitHub 연동 배포를 원하면 대시보드 Workers > Create > Import a repos
 
 | 구분 | 목록 |
 |---|---|
-| 개발 | ASP `aspdev.okpos.co.kr`, NICE `nicedev.okpos.co.kr`, KIS `kisdev.okpos.co.kr` |
-| 운영 | ASP `asp.okpos.co.kr`, NICE `nice.okpos.co.kr`, NICE(구) `www.niceokpos.co.kr`, KIS `kis.okpos.co.kr`, KIS(구) `www.kisokpos.co.kr`, NICEPAY `www.nicepayokpos.co.kr` |
+| 개발 | ASP `dev.netusys.com`, NK개발 `192.168.50.234` (사설 IP: 사내망 로컬 실행 + `ALLOW_PRIVATE_HOSTS=1` 에서만 전송 가능) |
+| 운영 | ASP `asp.netusys.com`, KIS(구) `www.kisokpos.co.kr`, NICE(구) `www.niceokpos.co.kr`, NICEPAY `www.nicepayokpos.co.kr` |
 
 목록에 없는 서버(IP 등)는 "직접 입력"을 고르고 주소를 입력합니다 (예: `211.43.10.5:8080`).
 
 - 경로·쿼리는 무시하고 `host[:port]` 만 사용하며, 뒤에 `/SvrApp/PS000.java` 를 붙여 전송합니다.
-- http/https 는 서버 칸 아래 "https 사용" 체크로 정합니다. 서버를 고르거나 주소를 입력하면 ServerSocket `LibXml_SendRecvData` 규칙(위 목록 도메인 https, 그 외·IP http)으로 자동 체크되고, 직접 바꿀 수 있습니다. 규칙과 다르면 안내 문구가 경고색으로 바뀝니다.
+- http/https 는 서버 칸 아래 "https 사용" 체크로 정합니다. 서버를 고르거나 주소를 입력하면 ServerSocket `LibXml_SendRecvData` 규칙(데몬 https 도메인 목록에 있으면 https, 그 외·IP http. `*.netusys.com`·NK개발은 http)으로 자동 체크되고, 직접 바꿀 수 있습니다. 규칙과 다르면 안내 문구가 경고색으로 바뀝니다.
 - 서버가 리다이렉트(3xx)하면 따라가지 않고 실패로 표시합니다.
 - 선택·입력한 주소는 그 브라우저의 localStorage 에만 저장되며 서버에는 남지 않습니다.
 - "직접 입력"에서 주소 칸을 비우면 환경변수 `TARGET_DEV` / `TARGET_PROD` 를 사용합니다. 둘 다 없으면 전송 버튼이 비활성화됩니다.
@@ -113,8 +113,8 @@ GitHub 연동 배포를 원하면 대시보드 Workers > Create > Import a repos
 
 ## 운영 전 확인 필요
 
-- **전송 헤더/본문 형식**: `SEND_USER_AGENT`, `SEND_BODY_MODE`(raw) 는 ServerSocket `LibXml_SendRecvData` 와 맞췄습니다.
-  `SEND_CONTENT_TYPE` 은 데몬이 직접 지정하지 않아(MSXML 기본값) 임시값입니다. 실제 요청을 캡처해 확인하세요.
+- **전송 헤더/본문 형식**: POST, User-Agent·Accept·Accept-Language·Cache-Control·Accept-Encoding, `SEND_BODY_MODE`(raw) 는
+  ServerSocket `LibXml_SendRecvData` 와 맞췄습니다. `SEND_CONTENT_TYPE` 은 서버팀 Postman 요청과 같은 `application/xml` 입니다.
   (본문을 폼 파라미터로 보내는 방식이면 `SEND_BODY_MODE=form`, `SEND_FORM_FIELD=<파라미터명>`)
 - **IP 제한**: 웹서버가 접속 IP를 제한하면 Cloudflare 에서의 요청이 차단됩니다.
 - **응답 판정**: `TXJM-FD SRID="PS011"` 이고 `RETCD` 가 0(0, 0000 …)이면 성공으로 봅니다.
