@@ -226,8 +226,13 @@ function renderSlip() {
     ${msgs ? `<ul class="msgs">${msgs}</ul>` : ''}
     ${p?.xml ? `<details><summary>요청 전문 XML</summary><pre>${esc(p.xml)}</pre>
       <button class="copy" data-copy="req">복사</button></details>` : ''}
+    ${last?.request ? `<details><summary>전송 요청 (URL·헤더·본문)</summary><pre>${esc(httpText(last.request))}</pre>
+      <button class="copy" data-copy="http">복사</button></details>` : ''}
     ${last?.responseText ? `<details><summary>응답 원문</summary><pre>${esc(last.responseText)}</pre></details>` : ''}`;
 }
+
+// 웹서버로 보낸 요청을 HTTP 형식 텍스트로 (서버팀 전달용)
+const httpText = (q) => [`${q.method} ${q.url}`, ...Object.entries(q.headers).map(([k, v]) => `${k}: ${v}`), `(전송 시각 ${q.sentAt})`, '', q.body].join('\n');
 
 // 현재 대상 서버로 아직 성공하지 않은 행 (개발 성공 후 운영 전송 가능)
 // 같은 구분(dev/prod)이라도 주소를 바꾸면 다시 보낼 수 있다
@@ -383,7 +388,9 @@ $('#rows').addEventListener('keydown', (e) => {
 $('#slip').addEventListener('click', (e) => {
   if (!e.target.matches('[data-copy]')) return;
   const r = state.rows.find((x) => x.id === state.selected);
-  if (r?.preview?.xml) navigator.clipboard.writeText(r.preview.xml).then(() => { e.target.textContent = '복사됨'; });
+  const last = r?.log[r.log.length - 1];
+  const text = e.target.dataset.copy === 'http' ? (last?.request && httpText(last.request)) : r?.preview?.xml;
+  if (text) navigator.clipboard.writeText(text).then(() => { e.target.textContent = '복사됨'; });
 });
 
 $('#sendAll').addEventListener('click', sendAll);

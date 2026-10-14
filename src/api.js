@@ -73,27 +73,32 @@ async function readJson(request) {
   try { return await request.json(); } catch { return null; }
 }
 
-async function sendPs010(env, baseUrl, xml) {
+/** 웹서버로 보낼 요청(URL·헤더·본문). 전송과 기록에 같은 값을 쓴다. */
+function buildRequest(env, baseUrl, xml) {
   const url = baseUrl + (env.SEND_PATH || '/SvrApp/PS000.java');
   const contentType = env.SEND_CONTENT_TYPE || 'text/xml; charset=UTF-8';
   const mode = (env.SEND_BODY_MODE || 'raw').toLowerCase();
   const body = mode === 'form'
     ? new URLSearchParams({ [env.SEND_FORM_FIELD || 'xml']: xml }).toString()
     : xml;
+  const headers = {
+    'content-type': mode === 'form' ? 'application/x-www-form-urlencoded; charset=UTF-8' : contentType,
+    'user-agent': env.SEND_USER_AGENT || DEFAULT_USER_AGENT,
+  };
+  return { method: 'POST', url, headers, body };
+}
 
+async function sendPs010(env, req) {
   const started = Date.now();
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'content-type': mode === 'form' ? 'application/x-www-form-urlencoded; charset=UTF-8' : contentType,
-      'user-agent': env.SEND_USER_AGENT || DEFAULT_USER_AGENT,
-    },
-    body,
+  const res = await fetch(req.url, {
+    method: req.method,
+    headers: req.headers,
+    body: req.body,
     redirect: 'manual',
     signal: AbortSignal.timeout(Number(env.SEND_TIMEOUT_MS) || 15000),
   });
   const text = await res.text();
-  return { url, httpStatus: res.status, location: res.headers.get('location'), elapsedMs: Date.now() - started, text };
+  return { httpStatus: res.status, location: res.headers.get('location'), elapsedMs: Date.now() - started, text };
 }
 
 export async function handleApi(request, env, path) {
@@ -138,9 +143,12 @@ export async function handleApi(request, env, path) {
     const n = normalize(body.row);
     if (!n.ok) return json({ ...n, sent: false }, 422);
     const xml = toWireXml(buildXml(n.values));
+    const req = buildRequest(env, base, xml);
+    const sentAt = new Date().toISOString();
+    const started = Date.now();
 
     try {
-      const r = await sendPs010(env, base, xml);
+      const r = await sendPs010(env, req);
       const result = r.httpStatus === 200
         ? parseResponse(r.text)
         : r.httpStatus >= 300 && r.httpStatus < 400
@@ -149,14 +157,16 @@ export async function handleApi(request, env, path) {
       return json({
         sent: true, target, targetUrl: base, key: `${n.values.SHOP_CD};${n.values.SALE_DATE};${n.values.POS_NO};00;3;`,
         warnings: n.warnings, values: n.values,
-        requestXml: xml, responseText: r.text, httpStatus: r.httpStatus, elapsedMs: r.elapsedMs,
+        requestXml: xml, request: { ...req, sentAt }, responseText: r.text, httpStatus: r.httpStatus, elapsedMs: r.elapsedMs,
         result,
       });
     } catch (e) {
       const timeout = e && (e.name === 'TimeoutError' || e.name === 'AbortError');
+      const cause = e && e.cause && (e.cause.code || e.cause.message);
       return json({
         sent: false, target, targetUrl: base, values: n.values, requestXml: xml,
-        result: { ok: false, message: timeout ? '서버 응답 시간 초과' : `전송 실패: ${e && e.message}` },
+        request: { ...req, sentAt }, elapsedMs: Date.now() - started,
+        result: { ok: false, message: timeout ? '서버 응답 시간 초과' : `전송 실패: ${e && e.message}${cause ? ` (${cause})` : ''}` },
       }, 502);
     }
   }
