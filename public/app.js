@@ -119,6 +119,9 @@ async function connect() {
     const { status, data } = await api('/api/config');
     if (status !== 200) return setConnected(false, data.error || `연결 실패 (HTTP ${status})`);
     envTargets = data.envTargets || { dev: false, prod: false };
+    // 개발서버는 로컬 실행에서만 표시 (Vercel 에서는 개발서버에 접속할 수 없음)
+    $('#targetDev').hidden = !data.local;
+    if (!data.local && target() === 'dev') document.querySelector('input[name="target"][value="prod"]').click();
     refreshServers();
     setConnected(true, '연결됨');
   } catch (e) {

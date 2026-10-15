@@ -129,7 +129,7 @@
 - README 갱신
 - 10차 업로드 커밋 정보 기록
 
-[12차 업로드]
+[12차 업로드 - 로컬 PC에서 실행하는 batch 파일 생성] 1db7778
 - 사내 PC 로컬 실행 추가 (NK개발 등 사설 IP 서버 전송용)
   . local-server.js: Node.js 만으로 실행 (npm install 불필요), 화면·전문·헤더는 Vercel 과 동일(src/api.js)
   . 로컬실행.bat 더블클릭 → http://127.0.0.1:8788 자동 열림, 접근 토큰 자동 생성·입력
@@ -138,9 +138,26 @@
 - README 갱신
 - 11차 업로드 커밋 정보 기록
 
+[오류 분석] 개발서버 dev.netusys.com 전송 실패 (Checkorce-close-log-20261014031214/031228.json)
+- https: Vercel 연결 시간 초과. 서버가 https 미지원 (사내 PC 에서도 TLS 오류) → https 사용 해제 필요
+- http: Vercel 연결 시간 초과 (UND_ERR_CONNECT_TIMEOUT), 사내 PC 에서는 HTTP 200
+- 서버 방화벽이 외부(Vercel) 접속 차단으로 판단, 전문·헤더는 정상. 로컬 실행(로컬실행.bat)으로 전송 필요
+
+-------------------------------------------------------------------------------
+2026-10-15
+-------------------------------------------------------------------------------
+[13차 업로드]
+- 실행 환경 구분: Vercel 은 운영서버만, 로컬 실행은 개발·운영 모두 표시
+  . /api/config 응답에 local 추가 (환경변수 LOCAL_RUN=1, local-server.js 는 자동 설정) (src/api.js, local-server.js)
+  . 연결 시 local 이 아니면 상단 [개발서버] 버튼 숨김, 개발 선택 상태면 운영으로 전환 (public/index.html, app.js, style.css)
+  . 연결 전에는 [운영서버] 만 표시
+  . wrangler 로컬 실행용 .dev.vars.example 에 LOCAL_RUN 추가
+- README 갱신
+- 12차 업로드 커밋 정보 기록, dev.netusys.com 전송 실패 분석 기록
+
 -------------------------------------------------------------------------------
 [미확인 / 후속]
 - Method: POST 로 전송 실패 시 GET(본문 포함) 전환 검토. fetch 불가로 Node http 직접 전송 필요 (local-server.js 는 Node 라 가능)
 - PS011 실제 응답 원문, 서버 반영 방식(덮어쓰기 여부), 재전송 시 동작
 - Vercel 실제 배포 후 개발/운영 서버 전송 검증
-- 웹서버의 접속 IP 제한 여부
+- 웹서버의 접속 IP 제한 여부 (개발 dev.netusys.com 은 외부 차단 확인, 운영서버는 서버팀 확인 필요)

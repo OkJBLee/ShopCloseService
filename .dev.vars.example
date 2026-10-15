@@ -7,3 +7,5 @@ TARGET_PROD=
 ALLOWED_HOSTS=
 # 로컬 목업 서버(127.0.0.1) 테스트 시에만 1
 ALLOW_PRIVATE_HOSTS=
+# 로컬 실행 표시: 1 이면 화면에 개발서버 표시 (wrangler dev 로 개발서버 테스트 시)
+LOCAL_RUN=

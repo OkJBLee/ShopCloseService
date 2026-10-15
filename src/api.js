@@ -7,6 +7,7 @@
 //   ALLOWED_HOSTS      (선택) 화면에서 입력한 주소를 허용할 호스트 목록, 쉼표 구분
 //                      (예: asp.okpos.co.kr,aspdev.okpos.co.kr). 비우면 공인 호스트 전체 허용
 //   ALLOW_PRIVATE_HOSTS (선택) 1 이면 localhost/사설 IP 허용 (로컬 테스트 전용)
+//   LOCAL_RUN          (선택) 1 이면 로컬 실행. 화면에 개발서버를 표시한다 (Vercel 은 운영서버만)
 //   SEND_PATH          기본 /SvrApp/PS000.java
 //   SEND_CONTENT_TYPE  기본 application/xml (서버팀 Postman 요청과 동일)
 //   SEND_USER_AGENT    기본 LibXml_SendRecvData 의 Win7 값 (Mozilla/5.0 … ORCA-1, 0, 0, 1)
@@ -115,7 +116,7 @@ export async function handleApi(request, env, path) {
   // 환경변수 기본 서버 존재 여부 (주소 자체는 노출하지 않음)
   if (path === '/api/config' && request.method === 'GET') {
     const t = envTargets(env);
-    return json({ envTargets: { dev: !!t.dev, prod: !!t.prod }, allowlist: !!String(env.ALLOWED_HOSTS || '').trim() });
+    return json({ envTargets: { dev: !!t.dev, prod: !!t.prod }, allowlist: !!String(env.ALLOWED_HOSTS || '').trim(), local: env.LOCAL_RUN === '1' });
   }
 
   if (request.method !== 'POST') return json({ error: 'POST 만 지원합니다.' }, 405);

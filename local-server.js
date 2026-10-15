@@ -13,7 +13,7 @@ import { handleApi } from './src/api.js';
 const PORT = Number(process.env.PORT) || 8788;
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
 const TOKEN = randomBytes(24).toString('hex');
-const env = { ...process.env, ACCESS_TOKEN: TOKEN, ALLOW_PRIVATE_HOSTS: '1' };
+const env = { ...process.env, ACCESS_TOKEN: TOKEN, ALLOW_PRIVATE_HOSTS: '1', LOCAL_RUN: '1' };
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
 
 async function serveStatic(pathname, res) {
